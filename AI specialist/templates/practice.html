@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IELTS Speaking Practice</title>
+    <style>
+        #stopButton, #playRecording, #submitResponse, #feedback {
+            display: none;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .button {
+            margin: 10px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #timer {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IELTS Speaking Practice</h1>
+        <div id="questionSection">
+            <h2>Practice Question:</h2>
+            <p id="question">Loading question...</p>
+        </div>
+
+        <div id="timer">0:00</div>
+
+        <div id="recordingSection">
+            <button id="startButton" class="button" onclick="startRecording()">Start Recording</button>
+            <button id="stopButton" class="button" onclick="stopRecording()">Stop Recording</button>
+            <button id="playRecording" class="button" onclick="playRecording()">Play Recording</button>
+            <button id="submitResponse" class="button" onclick="submitResponse()">Submit Response</button>
+        </div>
+
+        <audio id="audioPlayback" controls style="display: none;"></audio>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let timerInterval;
+        let seconds = 0;
+        let audioBlob;
+
+        function startTimer() {
+            seconds = 0;
+            timerInterval = setInterval(() => {
+                seconds++;
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                document.getElementById('timer').textContent = 
+                    `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    document.getElementById('audioPlayback').src = audioUrl;
+                };
+
+                mediaRecorder.start();
+                startTimer();
+                document.getElementById('startButton').style.display = 'none';
+                document.getElementById('stopButton').style.display = 'inline-block';
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message);
+            }
+        }
+
+        function stopRecording() {
+            mediaRecorder.stop();
+            stopTimer();
+            document.getElementById('stopButton').style.display = 'none';
+            document.getElementById('playRecording').style.display = 'inline-block';
+            document.getElementById('submitResponse').style.display = 'inline-block';
+            
+            // Debug info
+            console.log('Audio chunks:', audioChunks.length);
+            console.log('Audio blob size:', audioBlob ? audioBlob.size : 'not created yet');
+        }
+
+        function playRecording() {
+            const audio = document.getElementById('audioPlayback');
+            audio.style.display = 'block';
+            audio.play();
+        }
+
+        async function submitResponse() {
+            if (!audioBlob) {
+                alert('No recording available to submit');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recording.wav');
+
+            try {
+                const response = await fetch('/api/submit-response', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Server error');
+                }
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    localStorage.setItem('speakingFeedback', JSON.stringify(data.feedback));
+                    window.location.href = '/feedback';
+                } else {
+                    throw new Error(data.message || 'Submission failed');
+                }
+            } catch (error) {
+                console.error('Submission error details:', error);
+                alert(`Error submitting recording: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html> 

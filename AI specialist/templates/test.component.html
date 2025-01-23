@@ -1,0 +1,10 @@
+<div class="test">
+    <h1>IELTS Speaking Test</h1>
+    <p>{{ currentPrompt }}</p>
+    <button (click)="startTimer()">Start Speaking</button>
+    <div *ngIf="timer > 0">
+      <p>Time Left: {{ timer }} seconds</p>
+      <p>Speak Now!</p>
+    </div>
+  </div>
+  

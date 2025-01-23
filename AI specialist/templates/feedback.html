@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IELTS Speaking Feedback</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .feedback-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .criteria-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .improvement-tips {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            margin-top: 10px;
+        }
+        .overall-score {
+            text-align: center;
+            font-size: 28px;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+        }
+        .try-again-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .try-again-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IELTS Speaking Feedback</h1>
+        <div id="feedbackContent">Loading feedback...</div>
+        <a href="/practice" class="try-again-btn">Try Another Question</a>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const feedback = localStorage.getItem('speakingFeedback');
+            if (feedback) {
+                const feedbackDiv = document.getElementById('feedbackContent');
+                // Parse the feedback and create structured HTML
+                const parsedFeedback = parseFeedback(feedback);
+                feedbackDiv.innerHTML = parsedFeedback;
+                localStorage.removeItem('speakingFeedback');
+            }
+        };
+
+        function parseFeedback(feedbackText) {
+            // Split the feedback into sections
+            const sections = feedbackText.split('\n\n');
+            let html = '';
+
+            sections.forEach(section => {
+                if (section.includes('Fluency and Coherence')) {
+                    html += createSection('Fluency and Coherence', section);
+                } else if (section.includes('Pronunciation')) {
+                    html += createSection('Pronunciation', section);
+                } else if (section.includes('Grammar')) {
+                    html += createSection('Grammar', section);
+                } else if (section.includes('Vocabulary')) {
+                    html += createSection('Vocabulary', section);
+                } else if (section.includes('Overall')) {
+                    html += `<div class="overall-score">${section}</div>`;
+                }
+            });
+
+            return html;
+        }
+
+        function createSection(title, content) {
+            const score = content.match(/Score: (\d+)/i)?.[1] || '';
+            return `
+                <div class="feedback-section">
+                    <div class="criteria-header">
+                        <h2>${title}</h2>
+                        <span class="score">${score}/9</span>
+                    </div>
+                    <div class="content">
+                        ${content.replace(/Score: \d+/i, '').replace(/\n/g, '<br>')}
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html> 

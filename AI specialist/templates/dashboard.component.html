@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IELTS Speaking Simulator</title>
+    <style>
+        .button {
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        
+        #settingsModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>Welcome to IELTS Speaking Simulator</h1>
+        <button class="button" onclick="startPractice()">Start Practice</button>
+        <button class="button" onclick="openSettings()">Settings</button>
+        <div *ngIf="userData">
+          <h2>Your Progress</h2>
+          <p>Sessions Completed: {{ userData.sessionsCompleted }}</p>
+          <p>Average Score: {{ userData.averageScore if userData.averageScore else 'No scores yet' }}</p>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal">
+        <h2>Settings</h2>
+        <div>
+            <label>Difficulty Level:</label>
+            <select id="difficultyLevel">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+        </div>
+        <div>
+            <label>Speech Recognition Language:</label>
+            <select id="language">
+                <option value="en-US">English (US)</option>
+                <option value="en-GB">English (UK)</option>
+                <option value="en-AU">English (AU)</option>
+            </select>
+        </div>
+        <button class="button" onclick="saveSettings()">Save</button>
+        <button class="button" onclick="closeSettings()">Cancel</button>
+    </div>
+
+    <script>
+        function startPractice() {
+            window.location.href = '/practice';
+        }
+
+        function openSettings() {
+            document.getElementById('settingsModal').style.display = 'block';
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function saveSettings() {
+            const settings = {
+                difficulty: document.getElementById('difficultyLevel').value,
+                language: document.getElementById('language').value
+            };
+
+            // Save settings to localStorage
+            localStorage.setItem('speakingSimulatorSettings', JSON.stringify(settings));
+            
+            // Close the modal
+            closeSettings();
+            
+            // Show confirmation
+            alert('Settings saved successfully!');
+        }
+
+        // Load saved settings when page loads
+        window.onload = function() {
+            const savedSettings = localStorage.getItem('speakingSimulatorSettings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                document.getElementById('difficultyLevel').value = settings.difficulty;
+                document.getElementById('language').value = settings.language;
+            }
+        };
+    </script>
+</body>
+</html>
+  
